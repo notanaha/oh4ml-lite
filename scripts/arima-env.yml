@@ -1,0 +1,18 @@
+name: arima-env
+dependencies:
+- python=3.6.9
+
+- pip:
+  - azureml-defaults
+  - statsmodels==0.12.2
+  - scipy
+  - scikit-learn
+  - joblib
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - numpy
+channels:
+- anaconda
+- conda-forge
