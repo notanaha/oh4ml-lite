@@ -1,4 +1,4 @@
-import os
+import os, argparse
 
 import pandas as pd
 import numpy as np
@@ -16,13 +16,23 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.arima_model import ARIMA
 
 from azureml.core import Dataset, Run
+from azureml.core.model import Model
+
+# +
+parser = argparse.ArgumentParser()
+parser.add_argument('--output', type=str, help="output", default="./outputs",)
+args = parser.parse_args()
+
+print("Argument 1: %s" % args.output)
+# -
 
 run = Run.get_context()
+run_id = run.id
 # get input dataset by name
 #dataset = run.input_datasets['transaction_ts']
 
-ws = run.experiment.workspace
-dataset1 = Dataset.get_by_name(workspace=ws, name='transaction_ts2013')
+workspace = run.experiment.workspace
+dataset1 = Dataset.get_by_name(workspace=workspace, name='transaction_ts2013')
 df = dataset1.to_pandas_dataframe()
 
 df.set_index('TransactionDate',inplace=True)
@@ -57,7 +67,6 @@ X = series.values
 size = int(len(X) * 0.9)
 train, test = X[0:size], X[size:len(X)]
 
-
 model = ARIMA(train, order=(2,0,2))
 model_fit = model.fit(disp=0)
 print(model_fit.summary())
@@ -87,8 +96,19 @@ plt.show()
 run.log('RMSE', rmse)
 run.log('R2', r2)
 
-model_file_name = 'arima_model.pkl'
+# +
+model_file_path = './models/arima_model.pkl'
+filename = os.path.join(args.output, model_file_path)
+print(filename)
 
-os.makedirs('./outputs', exist_ok=True)
-with open(model_file_name, 'wb') as file:
-    joblib.dump(value=model_fit, filename='outputs/' + model_file_name)
+os.makedirs(os.path.join(args.output, 'models'), exist_ok=True)
+joblib.dump(value=model_fit, filename=filename)
+
+# +
+metric = {}
+metric['RMSE'] = rmse
+metric['R2'] = r2
+print(metric)
+
+with open(os.path.join(args.output, 'metric.json'), "w") as outfile:
+    json.dump(metric, outfile)

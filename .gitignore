@@ -3,6 +3,7 @@ __pycache__/
 .ipynb_checkpoints/
 .vscode/
 data/
+models/
 scripts/__pycache__/
 scripts/.ipynb_checkpoints/
 scripts/*.amltmp
