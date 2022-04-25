@@ -1,6 +1,6 @@
 name: arima-env
 dependencies:
-- python=3.6.9
+- python=3.8.5
 
 - pip:
   - azureml-defaults
@@ -9,7 +9,7 @@ dependencies:
   - scikit-learn
   - joblib
   - numpy
-  - pandas
+  - pandas==1.1.4
   - matplotlib
   - seaborn
   - numpy

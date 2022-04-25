@@ -18,22 +18,25 @@ from statsmodels.tsa.arima_model import ARIMA
 from azureml.core import Dataset, Run
 from azureml.core.model import Model
 
-# +
+
 parser = argparse.ArgumentParser()
-parser.add_argument('--output', type=str, help="output", default="./outputs",)
+parser.add_argument('--model_name', type=str, help="model_name", default="arima-model")
+parser.add_argument('--input', type=str, help="input")
+parser.add_argument('--output', type=str, help="output", default="./outputs")
 args = parser.parse_args()
 
-print("Argument 1: %s" % args.output)
-# -
+print("Argument 1: %s" % args.model_name)
+print("Argument 2: %s" % args.input)
+print("Argument 3: %s" % args.output)
+
 
 run = Run.get_context()
 run_id = run.id
-# get input dataset by name
-#dataset = run.input_datasets['transaction_ts']
+#workspace = run.experiment.workspace
+#dataset1 = Dataset.get_by_name(workspace=workspace, name='transaction_ts2013')
+#df = dataset1.to_pandas_dataframe()
 
-workspace = run.experiment.workspace
-dataset1 = Dataset.get_by_name(workspace=workspace, name='transaction_ts2013')
-df = dataset1.to_pandas_dataframe()
+df = pd.read_csv(args.input)
 
 df.set_index('TransactionDate',inplace=True)
 df.columns = ['PaidAmount']
@@ -74,7 +77,7 @@ print(model_fit.summary())
 # plot residual errors
 residuals = pd.DataFrame(model_fit.resid)
 residuals.plot(title="Residuals Error Plot")
-plt.show()
+plt.savefig(os.path.join(args.output, "res.png"))
 #residuals.plot(kind='kde')
 #plt.show()
 #print(residuals.describe())
@@ -91,21 +94,23 @@ print('Test R2: %.3f' % r2)
 plt.plot(test)
 plt.plot(predictions, color='red')
 plt.title("Test Data Vs. Predictions")
-plt.show()
+plt.savefig(os.path.join(args.output, "pred.png"))
 
 run.log('RMSE', rmse)
 run.log('R2', r2)
 
-# +
-model_file_path = './models/arima_model.pkl'
+
+model_file_path = 'models/' + 'arima_model.pkl'
 filename = os.path.join(args.output, model_file_path)
 print(filename)
 
 os.makedirs(os.path.join(args.output, 'models'), exist_ok=True)
 joblib.dump(value=model_fit, filename=filename)
 
-# +
+
 metric = {}
+metric['run_id'] = run_id
+metric['model_name'] = args.model_name
 metric['RMSE'] = rmse
 metric['R2'] = r2
 print(metric)
